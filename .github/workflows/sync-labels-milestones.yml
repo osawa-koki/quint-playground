@@ -1,0 +1,58 @@
+name: Sync labels and milestones
+
+# .github/custom-data/label.json・milestone.json に合わせて、GitHub のラベルとマイルストーンを直す。
+# PR では、何が変わるかを表示するだけ。main にマージされたとき・手で動かしたときに反映する
+on:
+  pull_request:
+    paths:
+      - .github/custom-data/**
+      - .github/scripts/sync-labels-milestones.sh
+      - .github/workflows/sync-labels-milestones.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/custom-data/**
+      - .github/scripts/sync-labels-milestones.sh
+      - .github/workflows/sync-labels-milestones.yml
+  workflow_dispatch:
+
+# 反映が同時に 2 つ動かないようにする
+concurrency:
+  group: sync-labels-milestones-${{ github.event_name }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  plan:
+    # PR：読むだけ（書き換えない）
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04 # gh と jq だけを使う
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Show changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/sync-labels-milestones.sh
+
+  apply:
+    # main へのプッシュ・手で動かしたとき：反映する（ラベルとマイルストーンを書き換えるので issues: write）。
+    # 手で動かすときも、main のファイルだけを反映する（ほかのブランチのファイルで書き換えないため）
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04 # gh と jq だけを使う
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Apply changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/sync-labels-milestones.sh --apply
