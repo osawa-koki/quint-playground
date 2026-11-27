@@ -1,27 +1,36 @@
 [
   {
-    "title": "01. 基本の文法とテスト",
+    "title": "01. 口座と取引の基本",
     "state": "open",
-    "description": "型・演算子・集合・マップ・リスト・レコード・関数（pure def）と、run によるテスト（quint test）・REPL"
+    "description": "型・レコード・マップ・集合・pure def で、口座と入金・出金・送金を関数として書き、run でテストする（quint test・REPL）",
+    "previous_titles": ["01. 基本の文法とテスト"]
   },
   {
-    "title": "02. 状態と遷移",
+    "title": "02. 銀行の状態機械",
     "state": "open",
-    "description": "var・action・init と step・nondet・any と all・状態機械として仕様を書く"
+    "description": "var・action・init と step・nondet・any で、銀行の操作を状態の遷移として書く",
+    "previous_titles": ["02. 状態と遷移"]
   },
   {
-    "title": "03. 不変条件とシミュレーション",
+    "title": "03. 不変条件と並行の送金",
     "state": "open",
-    "description": "不変条件（invariant）・quint run によるランダムなシミュレーション・反例のトレースの読み方"
+    "description": "残高が負にならない・総額が変わらないなどの不変条件を quint run で確かめ、同時の送金で起きる不具合を反例のトレースで見る",
+    "previous_titles": ["03. 不変条件とシミュレーション"]
   },
   {
     "title": "04. モデル検査",
     "state": "open",
-    "description": "Apalache を使った quint verify・有界のモデル検査・時相の性質（temporal）"
+    "description": "Apalache を使った quint verify で、銀行の性質を網羅的に確かめる・時相の性質（temporal）"
   },
   {
-    "title": "05. 題材の仕様",
+    "title": "05. Rails の実装と突き合わせる",
     "state": "open",
-    "description": "相互排除・2 フェーズコミット・合意のプロトコルなど、まとまった題材を仕様にして確かめる"
+    "description": "Rails で銀行を作り、quint run のトレース（ITF）を Ruby のテストで流して、実装が仕様どおりかを確かめる（モデルベースのテスト）",
+    "previous_titles": ["05. 題材の仕様"]
+  },
+  {
+    "title": "06. 題材を広げる",
+    "state": "open",
+    "description": "2 フェーズコミット・相互排除・合意のプロトコルなど、銀行のほかの題材を仕様にして確かめる"
   }
 ]

@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-[Quint](https://quint-lang.org/)（Informal Systems の仕様記述言語）を、実際に仕様を書いてテストしながら学ぶためのリポジトリ。段階ごとに小さな仕様を書き、`quint test`・`quint run`・`quint verify` で確かめて、最後にまとまった題材（相互排除・2 フェーズコミット・合意のプロトコルなど）を仕様にする。概要と進み具合は [README.md](README.md) を参照。
+[Quint](https://quint.sh/)（仕様記述言語）を、実際に仕様を書いてテストしながら学ぶためのリポジトリ。題材は簡単な銀行システム。先に Quint で銀行の仕様を書き、`quint test`・`quint run`・`quint verify` で確かめてから、Rails で銀行を作り、仕様のトレースで実装を確かめる（モデルベースのテスト）。最後に、ほかの題材（2 フェーズコミットなど）に広げる。概要と進み具合は [README.md](README.md) を参照。
 
 ## 絶対に守ること
 
 - **ユーザーへの応答は、すべて日本語で書く**（説明・報告・質問・途中の短い知らせも。英語で書かない）。コミットの件名・PR の題名・Quint のコードの識別子など、このファイルで英語と決めたものだけは英語のまま
 - **書いた仕様は、必ずツールで確かめてからコミットする。** 少なくとも `quint typecheck` と `quint test` を通す。不変条件を書いたら `quint run --invariant=<名前>` でも確かめる。通らないもの・確かめていないものを「動く」と書かない
 - **Quint の文法・挙動は、記憶で決めつけない。** 公式のドキュメントか、実際に `quint` で動かした結果で確かめる。確かめられないことは、事実として書かず「確かめられなかった」と書く
-  - 出典にしてよいもの：Quint の公式サイト（<https://quint-lang.org/docs>）、Quint のリポジトリ（<https://github.com/informalsystems/quint>。`docs/`・`examples/`・リリースノート）、Apalache の公式ドキュメント（<https://apalache-mc.org/docs/>）、TLA+ の公式の資料（<https://lamport.azurewebsites.net/tla/tla.html>）。版がわかるものは、版がわかる形で書く
+  - 出典にしてよいもの：Quint の公式サイト（<https://quint.sh/docs>。もとは quint-lang.org）、Quint のリポジトリ（<https://github.com/quint-co/quint>。もとは informalsystems/quint。`docs/`・`examples/`・リリースノート）、Apalache の公式ドキュメント（<https://apalache-mc.org/docs/>）、TLA+ の公式の資料（<https://lamport.azurewebsites.net/tla/tla.html>）。版がわかるものは、版がわかる形で書く
   - 出典にしないもの：個人のブログ・解説記事（Qiita・Zenn・Medium など）・動画・まとめのページ。読み比べて参考にするのはよいが、事実の出典にはしない
 - **料金がかかるもの（GitHub の有料の機能・API・クラウドなど）を使う・変えるときは、その前に必ず料金を見積もる**
   - 公式の料金のページで、無料枠と単価を確かめる。見積もりの根拠（出典）を、ユーザーに見せる
@@ -20,11 +20,14 @@
 
 | ディレクトリ・ファイル | 役割 |
 |---|---|
+| `specs/` | Quint の仕様（`.qnt`）とテスト。確かめ方は「決めたこと」の「仕様の書き方」 |
+| `scripts/` | 人が手で動かすスクリプト（CI も同じものを呼ぶ）。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。引数でファイル・ディレクトリを絞れる） |
+| `package.json`・`package-lock.json`・`.node-version` | Quint の版の固定（`@informalsystems/quint` を完全な版で書く）と、CI の Node.js の版（`.node-version`）。`npm ci --ignore-scripts` で入れる |
 | `.vscode/` | VS Code の推奨の拡張（`extensions.json`：EditorConfig・markdownlint・Quint） |
 | `.editorconfig` | インデント・改行などのそろえ方 |
 | `.markdownlint-cli2.jsonc` | markdownlint の設定（CI と VS Code の拡張が読む）。日本語の文は 1 段落を 1 行で書くので、行の長さ（MD013）と表の列の幅（MD060）は見ない |
 | `.github/custom-data/` | GitHub の設定を表すデータ。`label.json`（ラベルの名前・色・説明・前の名前）・`milestone.json`（マイルストーンの名前・状態・説明・前の名前）。`.github/scripts/sync-labels-milestones.sh` が GitHub に同期する（`.github/` の下で GitHub が読むものとぶつからないよう、`custom-data/` に分けた） |
-| `.github/scripts/` | ワークフローが使うスクリプト。`sync-labels-milestones.sh`（`label.json`・`milestone.json` と GitHub を比べる。`--apply` で反映する） |
+| `.github/scripts/` | ワークフローが使うスクリプト。`sync-labels-milestones.sh`（`label.json`・`milestone.json` と GitHub を比べる。`--apply` で反映する）・`check-links.py`（リポジトリの中の Markdown のリンク（ファイル・見出しのアンカー）が切れていないかを確かめる。アンカーは GitHub と同じ決まりで見出しから作る。標準のライブラリだけを使う） |
 | `.claude/` | Claude Code の設定。`skills/`（開発フローのスキル：issue-creator・pr-creator・pr-merger）・`settings.json`（PreToolUse のフックで `hooks/guard-main-worktree.py` を呼ぶ） |
 
 ## 決めたこと
@@ -34,6 +37,13 @@
 - 手元の Mac のディスクの空きが少ない。大きなファイル（`quint run`・`verify` の出力・Apalache の作業用のファイルなど）は使い終わったら消し、リポジトリにコミットしない（`.gitignore`）
 - **手作業の手順・前提は、すべて README に書く**：ツールの入れ方、ログイン、コードから読み取れないもの。ユーザーに手作業を頼んだら、その手順を README の「セットアップ」に足す
 - VS Code の拡張は、`.vscode/extensions.json` に書く
+- **題材は銀行**：段階 01〜04 は Quint だけで銀行の仕様を書き、05 で Rails の実装と突き合わせる。Rails から先に作らない（Quint と関係ない作業が先に来るため）
+- **Quint の版**：`package.json` で完全な版に固定する（`^` や `~` を付けない）。上げるときは、出て 2 週間以上たった版にし、Issue → PR で `package.json`・`package-lock.json`・README を一緒に直す。`quint test` が使う Rust の評価器は、Quint が初めて動くときに GitHub から `~/.quint/` に取ってくる（数 MB）
+- **仕様の書き方**：
+  - ファイルは `specs/` の下に置き、1 ファイルに 1 モジュール。ファイル名とモジュール名をそろえる（`specs/bank.qnt` なら `module bank`）
+  - テストは `run <名前>Test = …` で書く（`quint test` は、名前が `Test` で終わる `run` を動かす）。テストは、確かめたいモジュールと同じファイルか、`<名前>_test.qnt`（`module <名前>_test` で `import` する）に置く
+  - わかったこと・つまずいた点は、仕様のファイルのコメント（`//`）に書く。Quint の文法の説明には、確かめた出典（公式のドキュメントの URL）か「`quint` で動かして確かめた」を書く
+- コミットの前に、`scripts/check-specs.sh`・`npx -y markdownlint-cli2@0.24.2`（CI の action と同じ版）・`python3 -I .github/scripts/check-links.py` を通す
 
 ## 開発フロー
 
@@ -43,10 +53,10 @@
    - `gh issue create --assignee osawa-koki --label <ラベル> --type <種類> [--milestone "<マイルストーン>"] --title "..." --body-file -`
    - Issue Type（種類）は、必ず 1 つ付ける（`--type`）。このリポジトリで使えるのは `Feature`・`Bug`・`Task` の 3 つ：`Feature` は新しくできることを足す（新しい仕様とテスト・題材など）、`Bug` はまちがいを直す（仕様・テスト・README の誤りも含む）、`Task` はそれ以外（CI・開発環境・Quint の版上げ・進め方）。付け忘れたときは `gh issue edit <番号> --type <種類>` で付ける
    - ラベルは、作業の種類で 1 つ以上付ける。どれがあり、どの Issue に付けるかは `.github/custom-data/label.json` の `name` と `description` を見る
-   - README の「進み具合」の段階（「01. 基本の文法とテスト」〜「05. 題材の仕様」）に入る作業なら、そのマイルストーンを付ける。段階の中の作業が多いときは、親の Issue を作り、`gh issue edit <親> --add-sub-issue <子>` でサブ Issue としてつなぐ。新しい段階を始めるときは、`.github/custom-data/milestone.json` に足し、README の「進み具合」にも足す
+   - README の「進み具合」の段階（「01. 口座と取引の基本」〜「06. 題材を広げる」）に入る作業なら、そのマイルストーンを付ける。段階の中の作業が多いときは、親の Issue を作り、`gh issue edit <親> --add-sub-issue <子>` でサブ Issue としてつなぐ。新しい段階を始めるときは、`.github/custom-data/milestone.json` に足し、README の「進み具合」にも足す
    - ラベルとマイルストーンは、`.github/custom-data/label.json`・`milestone.json` で管理する。`gh label create` や `gh api .../milestones` で直接変えない。ファイルを変える PR では、`sync-labels-milestones.yml` が何が変わるかを表示し、main にマージされると GitHub に反映する。ラベルの名前を変えるときは `previous_names`、マイルストーンは `previous_titles` に前の名前を書く（書かないと、消して作り直す動きになり、Issue から外れる）。マイルストーンは消さず、終わった段階は `"state": "closed"` にする
    - 題名は英語、本文は日本語で、**概要・背景・目的・達成条件・TODO** の 5 セクションで書く。issue-creator スキル（`.claude/skills/issue-creator/SKILL.md`）に従う
-   - Issue は適切な粒度で作る。1 つの Issue は、1 つの PR でレビューできて、それだけで意味のあるまとまり（例：「集合とマップの演算子を試す」「カウンターの状態機械と不変条件を書く」「CI」は別々）。「Quint 全体」のような大きすぎる Issue も、テスト 1 つごとのような細かすぎる Issue も作らない
+   - Issue は適切な粒度で作る。1 つの Issue は、1 つの PR でレビューできて、それだけで意味のあるまとまり（例：「口座と送金を関数として書く」「銀行の操作を状態機械にする」「CI」は別々）。「Quint 全体」のような大きすぎる Issue も、テスト 1 つごとのような細かすぎる Issue も作らない
 2. **Issue に紐づくブランチと、作業用の worktree を作る**
    - `gh issue develop <番号> --name issues/<番号> --base main`
    - `git fetch origin issues/<番号> && git worktree add --track -b issues/<番号> .worktrees/issues-<番号> origin/issues/<番号>`
@@ -79,6 +89,7 @@ PR は役割ごとに分ける。前の PR に依存する場合は、マージ�
 
 | ワークフロー | トリガー | 内容 |
 |---|---|---|
+| `.github/workflows/ci.yml` | PR すべて・`main` プッシュ | `markdown` のジョブ：`DavidAnson/markdownlint-cli2-action` で Markdown の lint（設定は `.markdownlint-cli2.jsonc`）・`.github/scripts/check-links.py` でリンクの確認。`specs` のジョブ：`actions/setup-node`（`.node-version`。キャッシュなし）→ `npm ci --ignore-scripts` → `scripts/check-specs.sh`（`quint typecheck`・`quint test`）。料金：public のリポジトリの標準のランナーなので無料。キャッシュ・アーティファクトは保存しない |
 | `.github/workflows/sync-labels-milestones.yml` | `.github/custom-data/**`・同期のスクリプト・このワークフローが変わった PR と `main` プッシュ、手で動かす（`workflow_dispatch`。`main` だけ反映） | `.github/scripts/sync-labels-milestones.sh` で、`label.json`・`milestone.json` と GitHub のラベル・マイルストーンを比べる。PR の `plan` のジョブは差分を表示するだけ（`issues: read`）。`main` の `apply` のジョブが反映する（`--apply`、`issues: write`）。ラベルはファイルにないものを消し、マイルストーンは消さない。`gh` と `jq` だけを使う。料金：public のリポジトリの標準のランナーなので無料 |
 
 - actions は、すべてコミットの SHA で固定し、行の終わりにバージョンを書く（例：`uses: actions/checkout@<40 文字の SHA> # v7.0.1`）。SHA は `gh api repos/<owner>/<repo>/commits/<タグ> --jq .sha` で調べる
