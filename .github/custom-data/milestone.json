@@ -1,0 +1,27 @@
+[
+  {
+    "title": "01. 基本の文法とテスト",
+    "state": "open",
+    "description": "型・演算子・集合・マップ・リスト・レコード・関数（pure def）と、run によるテスト（quint test）・REPL"
+  },
+  {
+    "title": "02. 状態と遷移",
+    "state": "open",
+    "description": "var・action・init と step・nondet・any と all・状態機械として仕様を書く"
+  },
+  {
+    "title": "03. 不変条件とシミュレーション",
+    "state": "open",
+    "description": "不変条件（invariant）・quint run によるランダムなシミュレーション・反例のトレースの読み方"
+  },
+  {
+    "title": "04. モデル検査",
+    "state": "open",
+    "description": "Apalache を使った quint verify・有界のモデル検査・時相の性質（temporal）"
+  },
+  {
+    "title": "05. 題材の仕様",
+    "state": "open",
+    "description": "相互排除・2 フェーズコミット・合意のプロトコルなど、まとまった題材を仕様にして確かめる"
+  }
+]

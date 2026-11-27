@@ -1,2 +1,21 @@
 ### macOS ###
 .DS_Store
+
+### Python（.claude/hooks のフック） ###
+__pycache__/
+*.py[cod]
+
+### Node.js（Quint・markdownlint を手元で動かしたとき） ###
+node_modules/
+
+### Quint（quint run・verify が書き出すもの） ###
+_apalache-out/
+*.itf.json
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+### git worktree（作業ごとの作業ツリー。CLAUDE.md の開発フロー） ###
+.worktrees/

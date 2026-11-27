@@ -1,0 +1,12 @@
+// markdownlint の設定（CI の ci.yml と、VS Code の markdownlint の拡張が読む）
+{
+  "config": {
+    "default": true,
+    // 日本語の文は 1 段落を 1 行で書くので、行の長さは見ない
+    "MD013": false,
+    // 表は |---|---| の詰めた形で書き、列の幅をそろえない
+    "MD060": false
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules/**", ".worktrees/**"]
+}

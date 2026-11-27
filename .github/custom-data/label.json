@@ -1,0 +1,22 @@
+[
+  {
+    "name": "spec",
+    "color": "1d76db",
+    "description": "Quint の仕様とテスト（specs/）"
+  },
+  {
+    "name": "docs",
+    "color": "5319e7",
+    "description": "わかったことのメモ（README・specs の中の説明・つまずいた点）"
+  },
+  {
+    "name": "ci",
+    "color": "fbca04",
+    "description": "GitHub Actions のワークフロー"
+  },
+  {
+    "name": "devenv",
+    "color": "c5def5",
+    "description": "開発環境と進め方（CLAUDE.md・開発フローのスキル・フック・エディタの設定・Quint の版）"
+  }
+]
