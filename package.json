@@ -1,0 +1,11 @@
+{
+  "name": "quint-playground",
+  "private": true,
+  "description": "Quint で仕様を書いてテストしながら学ぶリポジトリ",
+  "scripts": {
+    "check": "scripts/check-specs.sh"
+  },
+  "devDependencies": {
+    "@informalsystems/quint": "0.33.1"
+  }
+}

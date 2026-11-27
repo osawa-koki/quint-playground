@@ -1,0 +1,46 @@
+name: CI
+
+# Markdown の lint・リンクの確認と、specs/ の Quint の仕様の typecheck・テスト（CLAUDE.md の「CI」）
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  markdown:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@3ce8f712b5d8f31acd8e201be6d97e3d2bb23eb7 # v25.1.0
+        with:
+          globs: "**/*.md" # 設定は .markdownlint-cli2.jsonc
+
+      - name: Check links
+        run: python3 -I .github/scripts/check-links.py
+
+  specs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false # キャッシュは使わない（保存の料金を増やさない。npm ci は数秒で終わる）
+
+      - name: Install Quint
+        run: npm ci --ignore-scripts # 版は package-lock.json で固定。install スクリプト（protobufjs の postinstall）は動かさない
+
+      - name: Typecheck and test specs
+        run: scripts/check-specs.sh
