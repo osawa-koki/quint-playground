@@ -18,7 +18,8 @@ module bank_machine_test {
       assert(accounts == INITIAL),
       assert(lastOp == Init),
       assert(lastOutcome == Success),
-      accounts' = accounts, lastOp' = lastOp, lastOutcome' = lastOutcome,
+      assert(netFlow == 0),
+      accounts' = accounts, lastOp' = lastOp, lastOutcome' = lastOutcome, netFlow' = netFlow,
     })
 
   run successfulSequenceTest =
@@ -30,6 +31,7 @@ module bank_machine_test {
         accounts == Map("alice" -> 30, "bob" -> 45),
         lastOp == Transfer({ src: "alice", dst: "bob", amount: 30 }),
         lastOutcome == Success,
+        netFlow == 10 - 5,  // 入金 10・出金 5。送金は数えない
       })
 
   // 失敗した操作は口座を変えず、理由が残る

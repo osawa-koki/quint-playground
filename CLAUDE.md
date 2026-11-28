@@ -21,7 +21,7 @@
 | ディレクトリ・ファイル | 役割 |
 |---|---|
 | `specs/` | Quint の仕様（`.qnt`）とテスト。確かめ方は「決めたこと」の「仕様の書き方」 |
-| `scripts/` | 人が手で動かすスクリプト（CI も同じものを呼ぶ）。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。引数でファイル・ディレクトリを絞れる）・`install-quint-evaluator.sh`（`quint test`・`quint run` が使う Rust の評価器を、認証付きの `gh` で取ってきて、リリースの SHA-256 で確かめて `~/.quint/` に置く。版は `node_modules` の Quint から読む。あれば何もしない） |
+| `scripts/` | 人が手で動かすスクリプト（CI も同じものを呼ぶ）。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。引数でファイル・ディレクトリを絞れる）・`check-invariants.sh`（スクリプトの中の表（`CHECKS`）に書いた仕様・step・不変条件に `quint run` を動かし、期待（`ok`：破られない／`violation`：破られる）と違えば失敗する。名前で絞れる）・`install-quint-evaluator.sh`（`quint test`・`quint run` が使う Rust の評価器を、認証付きの `gh` で取ってきて、リリースの SHA-256 で確かめて `~/.quint/` に置く。版は `node_modules` の Quint から読む。あれば何もしない） |
 | `package.json`・`package-lock.json`・`.node-version` | Quint の版の固定（`@informalsystems/quint` を完全な版で書く）と、CI の Node.js の版（`.node-version`）。`npm ci --ignore-scripts` で入れる |
 | `.vscode/` | VS Code の推奨の拡張（`extensions.json`：EditorConfig・markdownlint・Quint） |
 | `.editorconfig` | インデント・改行などのそろえ方 |
@@ -42,8 +42,9 @@
 - **仕様の書き方**：
   - ファイルは `specs/` の下に置き、1 ファイルに 1 モジュール。ファイル名とモジュール名をそろえる（`specs/bank.qnt` なら `module bank`）
   - テストは `run <名前>Test = …` で書く（`quint test` は、名前が `Test` で終わる `run` を動かす）。テストは、仕様と別の `<名前>_test.qnt`（`module <名前>_test` で `import <名前>.* from "./<名前>"`）に置き、仕様のモジュールには `run` を書かない。`import <名前>.*` は `run` まで取り込むので、仕様に `run` があると、import したほうの `quint test` でも同じテストがもう一度動くため（quint 0.33.1 で確かめた。`import m.{ a, b }` のように名前をまとめて選ぶ書き方は使えない）
+  - 不変条件は `val` で書き、`scripts/check-invariants.sh` の表（`CHECKS`）に足す。わざと不具合のある仕様（反例を見るためのもの）は、期待を `violation` にして足す（破られなくなったら CI が失敗するので、反例が出ることを保てる）
   - わかったこと・つまずいた点は、仕様のファイルのコメント（`//`）に書く。Quint の文法の説明には、確かめた出典（公式のドキュメントの URL）か「`quint` で動かして確かめた」を書く
-- コミットの前に、`scripts/check-specs.sh`・`npx -y markdownlint-cli2@0.24.2`（CI の action と同じ版）・`python3 -I .github/scripts/check-links.py` を通す
+- コミットの前に、`scripts/check-specs.sh`・`scripts/check-invariants.sh`・`npx -y markdownlint-cli2@0.24.2`（CI の action と同じ版）・`python3 -I .github/scripts/check-links.py` を通す
 
 ## 開発フロー
 
@@ -89,7 +90,7 @@ PR は役割ごとに分ける。前の PR に依存する場合は、マージ�
 
 | ワークフロー | トリガー | 内容 |
 |---|---|---|
-| `.github/workflows/ci.yml` | PR すべて・`main` プッシュ | `markdown` のジョブ：`DavidAnson/markdownlint-cli2-action` で Markdown の lint（設定は `.markdownlint-cli2.jsonc`）・`.github/scripts/check-links.py` でリンクの確認。`specs` のジョブ：`actions/setup-node`（`.node-version`。キャッシュなし）→ `npm ci --ignore-scripts` → `scripts/install-quint-evaluator.sh`（`GH_TOKEN` に `github.token`。認証付きなので rate limit に当たりにくい）→ `scripts/check-specs.sh`（`quint typecheck`・`quint test`）。料金：public のリポジトリの標準のランナーなので無料。キャッシュ・アーティファクトは保存しない |
+| `.github/workflows/ci.yml` | PR すべて・`main` プッシュ | `markdown` のジョブ：`DavidAnson/markdownlint-cli2-action` で Markdown の lint（設定は `.markdownlint-cli2.jsonc`）・`.github/scripts/check-links.py` でリンクの確認。`specs` のジョブ：`actions/setup-node`（`.node-version`。キャッシュなし）→ `npm ci --ignore-scripts` → `scripts/install-quint-evaluator.sh`（`GH_TOKEN` に `github.token`。認証付きなので rate limit に当たりにくい）→ `scripts/check-specs.sh`（`quint typecheck`・`quint test`）→ `scripts/check-invariants.sh`（`quint run` で不変条件。既定 10000 本 × 20 歩）。料金：public のリポジトリの標準のランナーなので無料。キャッシュ・アーティファクトは保存しない |
 | `.github/workflows/sync-labels-milestones.yml` | `.github/custom-data/**`・同期のスクリプト・このワークフローが変わった PR と `main` プッシュ、手で動かす（`workflow_dispatch`。`main` だけ反映） | `.github/scripts/sync-labels-milestones.sh` で、`label.json`・`milestone.json` と GitHub のラベル・マイルストーンを比べる。PR の `plan` のジョブは差分を表示するだけ（`issues: read`）。`main` の `apply` のジョブが反映する（`--apply`、`issues: write`）。ラベルはファイルにないものを消し、マイルストーンは消さない。`gh` と `jq` だけを使う。料金：public のリポジトリの標準のランナーなので無料 |
 
 - actions は、すべてコミットの SHA で固定し、行の終わりにバージョンを書く（例：`uses: actions/checkout@<40 文字の SHA> # v7.0.1`）。SHA は `gh api repos/<owner>/<repo>/commits/<タグ> --jq .sha` で調べる

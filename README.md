@@ -22,7 +22,7 @@ GitHub（osawa-koki/quint-playground）
 | ディレクトリ・ファイル | 役割 |
 |---|---|
 | `specs/` | Quint の仕様（`.qnt`）とテスト |
-| `scripts/` | 手で動かすスクリプト。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす）・`install-quint-evaluator.sh`（Quint の Rust の評価器を、認証付きの `gh` で入れる）。CI も同じものを呼ぶ |
+| `scripts/` | 手で動かすスクリプト。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす）・`check-invariants.sh`（不変条件を `quint run` で確かめる）・`install-quint-evaluator.sh`（Quint の Rust の評価器を、認証付きの `gh` で入れる）。CI も同じものを呼ぶ |
 | `package.json`・`package-lock.json`・`.node-version` | Quint の版の固定と、CI の Node.js の版 |
 | `.vscode/` | VS Code の推奨の拡張（EditorConfig・markdownlint・Quint） |
 | `.editorconfig` | インデント・改行などのそろえ方 |
@@ -66,7 +66,9 @@ npx quint --version       # 0.33.1
 ```sh
 scripts/check-specs.sh                    # specs/ のすべての .qnt に quint typecheck と quint test
 scripts/check-specs.sh specs/bank.qnt     # ファイルを絞る
-npx quint run --invariant=<名前> specs/<ファイル>.qnt   # 不変条件をランダムなシミュレーションで確かめる
+scripts/check-invariants.sh               # 表に書いた不変条件を quint run で確かめる（CI と同じ）
+scripts/check-invariants.sh bank_machine  # 表の名前で絞る
+npx quint run specs/<ファイル>.qnt --invariants <名前> ...   # 直接動かす（ファイルの名前は --invariants の前に書く）
 ```
 
 ### Markdown を手元で確かめる
