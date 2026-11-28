@@ -49,3 +49,6 @@ jobs:
 
       - name: Typecheck and test specs
         run: scripts/check-specs.sh
+
+      - name: Check invariants
+        run: scripts/check-invariants.sh # quint run のランダムなシミュレーション（表はスクリプトの CHECKS）
