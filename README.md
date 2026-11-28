@@ -22,7 +22,7 @@ GitHub（osawa-koki/quint-playground）
 | ディレクトリ・ファイル | 役割 |
 |---|---|
 | `specs/` | Quint の仕様（`.qnt`）とテスト |
-| `scripts/` | 手で動かすスクリプト。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。CI も同じものを呼ぶ） |
+| `scripts/` | 手で動かすスクリプト。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす）・`install-quint-evaluator.sh`（Quint の Rust の評価器を、認証付きの `gh` で入れる）。CI も同じものを呼ぶ |
 | `package.json`・`package-lock.json`・`.node-version` | Quint の版の固定と、CI の Node.js の版 |
 | `.vscode/` | VS Code の推奨の拡張（EditorConfig・markdownlint・Quint） |
 | `.editorconfig` | インデント・改行などのそろえ方 |
@@ -55,7 +55,7 @@ npm ci --ignore-scripts   # node_modules/ に入る（約 40 MB）。install ス
 npx quint --version       # 0.33.1
 ```
 
-- `quint test`・`quint run` が使う Rust の評価器は、初めて動かしたときに GitHub から `~/.quint/` に取ってくる（数 MB）
+- `quint test`・`quint run` が使う Rust の評価器は、なければ初めて動かしたときに GitHub から `~/.quint/` に取ってくる（数 MB）。認証なしで取るので、GitHub の API の回数の上限（rate limit）で失敗したら、`gh auth login` 済みの状態で `scripts/install-quint-evaluator.sh` を動かす（認証付きで取ってきて、SHA-256 を確かめて置く）
 - `quint verify` は Apalache（Java 17 以上が要る）を使う。使うのは段階 04 から。入れ方はそのときに足す
 - VS Code では、Quint の拡張（`.vscode/extensions.json` の推奨）が、書いている間に型のエラーを示す
 

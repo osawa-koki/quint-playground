@@ -42,5 +42,10 @@ jobs:
       - name: Install Quint
         run: npm ci --ignore-scripts # 版は package-lock.json で固定。install スクリプト（protobufjs の postinstall）は動かさない
 
+      - name: Install Quint evaluator
+        env:
+          GH_TOKEN: ${{ github.token }} # 認証付きで取ってくる（Quint が認証なしで取ると rate limit で失敗することがある。#9）
+        run: scripts/install-quint-evaluator.sh
+
       - name: Typecheck and test specs
         run: scripts/check-specs.sh

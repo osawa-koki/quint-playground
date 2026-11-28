@@ -21,7 +21,7 @@
 | ディレクトリ・ファイル | 役割 |
 |---|---|
 | `specs/` | Quint の仕様（`.qnt`）とテスト。確かめ方は「決めたこと」の「仕様の書き方」 |
-| `scripts/` | 人が手で動かすスクリプト（CI も同じものを呼ぶ）。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。引数でファイル・ディレクトリを絞れる） |
+| `scripts/` | 人が手で動かすスクリプト（CI も同じものを呼ぶ）。`check-specs.sh`（`specs/` のすべての `.qnt` に `quint typecheck` と `quint test` を動かす。引数でファイル・ディレクトリを絞れる）・`install-quint-evaluator.sh`（`quint test`・`quint run` が使う Rust の評価器を、認証付きの `gh` で取ってきて、リリースの SHA-256 で確かめて `~/.quint/` に置く。版は `node_modules` の Quint から読む。あれば何もしない） |
 | `package.json`・`package-lock.json`・`.node-version` | Quint の版の固定（`@informalsystems/quint` を完全な版で書く）と、CI の Node.js の版（`.node-version`）。`npm ci --ignore-scripts` で入れる |
 | `.vscode/` | VS Code の推奨の拡張（`extensions.json`：EditorConfig・markdownlint・Quint） |
 | `.editorconfig` | インデント・改行などのそろえ方 |
@@ -38,7 +38,7 @@
 - **手作業の手順・前提は、すべて README に書く**：ツールの入れ方、ログイン、コードから読み取れないもの。ユーザーに手作業を頼んだら、その手順を README の「セットアップ」に足す
 - VS Code の拡張は、`.vscode/extensions.json` に書く
 - **題材は銀行**：段階 01〜04 は Quint だけで銀行の仕様を書き、05 で Rails の実装と突き合わせる。Rails から先に作らない（Quint と関係ない作業が先に来るため）
-- **Quint の版**：`package.json` で完全な版に固定する（`^` や `~` を付けない）。上げるときは、出て 2 週間以上たった版にし、Issue → PR で `package.json`・`package-lock.json`・README を一緒に直す。`quint test` が使う Rust の評価器は、Quint が初めて動くときに GitHub から `~/.quint/` に取ってくる（数 MB）
+- **Quint の版**：`package.json` で完全な版に固定する（`^` や `~` を付けない）。上げるときは、出て 2 週間以上たった版にし、Issue → PR で `package.json`・`package-lock.json`・README を一緒に直す。`quint test`・`quint run` が使う Rust の評価器は、なければ Quint が GitHub の API から認証なしで `~/.quint/` に取ってくる（数 MB）。CI では、IP を共有するランナーで rate limit に当たって失敗した（#9）ので、`scripts/install-quint-evaluator.sh` で先に入れる。Quint の版を上げたら、このスクリプトが評価器の版を読めるか（`binaryManager.js` の `QUINT_EVALUATOR_VERSION`）も確かめる
 - **仕様の書き方**：
   - ファイルは `specs/` の下に置き、1 ファイルに 1 モジュール。ファイル名とモジュール名をそろえる（`specs/bank.qnt` なら `module bank`）
   - テストは `run <名前>Test = …` で書く（`quint test` は、名前が `Test` で終わる `run` を動かす）。テストは、仕様と別の `<名前>_test.qnt`（`module <名前>_test` で `import <名前>.* from "./<名前>"`）に置き、仕様のモジュールには `run` を書かない。`import <名前>.*` は `run` まで取り込むので、仕様に `run` があると、import したほうの `quint test` でも同じテストがもう一度動くため（quint 0.33.1 で確かめた。`import m.{ a, b }` のように名前をまとめて選ぶ書き方は使えない）
@@ -89,7 +89,7 @@ PR は役割ごとに分ける。前の PR に依存する場合は、マージ�
 
 | ワークフロー | トリガー | 内容 |
 |---|---|---|
-| `.github/workflows/ci.yml` | PR すべて・`main` プッシュ | `markdown` のジョブ：`DavidAnson/markdownlint-cli2-action` で Markdown の lint（設定は `.markdownlint-cli2.jsonc`）・`.github/scripts/check-links.py` でリンクの確認。`specs` のジョブ：`actions/setup-node`（`.node-version`。キャッシュなし）→ `npm ci --ignore-scripts` → `scripts/check-specs.sh`（`quint typecheck`・`quint test`）。料金：public のリポジトリの標準のランナーなので無料。キャッシュ・アーティファクトは保存しない |
+| `.github/workflows/ci.yml` | PR すべて・`main` プッシュ | `markdown` のジョブ：`DavidAnson/markdownlint-cli2-action` で Markdown の lint（設定は `.markdownlint-cli2.jsonc`）・`.github/scripts/check-links.py` でリンクの確認。`specs` のジョブ：`actions/setup-node`（`.node-version`。キャッシュなし）→ `npm ci --ignore-scripts` → `scripts/install-quint-evaluator.sh`（`GH_TOKEN` に `github.token`。認証付きなので rate limit に当たりにくい）→ `scripts/check-specs.sh`（`quint typecheck`・`quint test`）。料金：public のリポジトリの標準のランナーなので無料。キャッシュ・アーティファクトは保存しない |
 | `.github/workflows/sync-labels-milestones.yml` | `.github/custom-data/**`・同期のスクリプト・このワークフローが変わった PR と `main` プッシュ、手で動かす（`workflow_dispatch`。`main` だけ反映） | `.github/scripts/sync-labels-milestones.sh` で、`label.json`・`milestone.json` と GitHub のラベル・マイルストーンを比べる。PR の `plan` のジョブは差分を表示するだけ（`issues: read`）。`main` の `apply` のジョブが反映する（`--apply`、`issues: write`）。ラベルはファイルにないものを消し、マイルストーンは消さない。`gh` と `jq` だけを使う。料金：public のリポジトリの標準のランナーなので無料 |
 
 - actions は、すべてコミットの SHA で固定し、行の終わりにバージョンを書く（例：`uses: actions/checkout@<40 文字の SHA> # v7.0.1`）。SHA は `gh api repos/<owner>/<repo>/commits/<タグ> --jq .sha` で調べる
