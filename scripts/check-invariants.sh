@@ -15,6 +15,9 @@ set -euo pipefail
 
 CHECKS='
 bank_machine | specs/bank_machine.qnt | step | noNegativeBalance accountsFixed totalMatchesFlow | ok
+bank_concurrent_unsafe | specs/bank_concurrent.qnt | stepUnsafe | moneyConserved | violation
+bank_concurrent_unsafe_nonnegative | specs/bank_concurrent.qnt | stepUnsafe | noNegativeBalance | ok
+bank_concurrent_locked | specs/bank_concurrent.qnt | stepLocked | noNegativeBalance moneyConserved locksHeld | ok
 '
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
