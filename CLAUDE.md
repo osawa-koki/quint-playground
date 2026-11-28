@@ -41,7 +41,7 @@
 - **Quint の版**：`package.json` で完全な版に固定する（`^` や `~` を付けない）。上げるときは、出て 2 週間以上たった版にし、Issue → PR で `package.json`・`package-lock.json`・README を一緒に直す。`quint test` が使う Rust の評価器は、Quint が初めて動くときに GitHub から `~/.quint/` に取ってくる（数 MB）
 - **仕様の書き方**：
   - ファイルは `specs/` の下に置き、1 ファイルに 1 モジュール。ファイル名とモジュール名をそろえる（`specs/bank.qnt` なら `module bank`）
-  - テストは `run <名前>Test = …` で書く（`quint test` は、名前が `Test` で終わる `run` を動かす）。テストは、確かめたいモジュールと同じファイルか、`<名前>_test.qnt`（`module <名前>_test` で `import` する）に置く
+  - テストは `run <名前>Test = …` で書く（`quint test` は、名前が `Test` で終わる `run` を動かす）。テストは、仕様と別の `<名前>_test.qnt`（`module <名前>_test` で `import <名前>.* from "./<名前>"`）に置き、仕様のモジュールには `run` を書かない。`import <名前>.*` は `run` まで取り込むので、仕様に `run` があると、import したほうの `quint test` でも同じテストがもう一度動くため（quint 0.33.1 で確かめた。`import m.{ a, b }` のように名前をまとめて選ぶ書き方は使えない）
   - わかったこと・つまずいた点は、仕様のファイルのコメント（`//`）に書く。Quint の文法の説明には、確かめた出典（公式のドキュメントの URL）か「`quint` で動かして確かめた」を書く
 - コミットの前に、`scripts/check-specs.sh`・`npx -y markdownlint-cli2@0.24.2`（CI の action と同じ版）・`python3 -I .github/scripts/check-links.py` を通す
 
